@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<title>Beleptető rendszer - önálló kliens demó</title>
+<style>
+  body {
+    margin: 0;
+    padding: 40px 20px 80px;
+    background: #4a90c2;
+    font-family: "Tahoma", "Segoe UI", sans-serif;
+    color: #000;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  h1 {
+    color: #fff;
+    font-size: 16px;
+    font-weight: normal;
+    text-shadow: 0 1px 2px rgba(0,0,0,.4);
+    margin: 0;
+  }
+  .pb-window {
+    width: 520px;
+    background: #ece9d8;
+    border: 1px solid #003c74;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    overflow: hidden;
+  }
+  .pb-window.large { width: 720px; }
+  .pb-window.hidden { display: none; }
+
+  .pb-titlebar {
+    background: linear-gradient(180deg, #0058a8 0%, #0054a5 50%, #003d7c 51%, #003366 100%);
+    color: #fff;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 0 1px 1px rgba(0,0,0,.5);
+    user-select: none;
+  }
+  .pb-titlebar .icon {
+    width: 16px; height: 16px;
+    background: #fff;
+    border: 1px solid #003366;
+    margin-right: 6px;
+    position: relative;
+  }
+  .pb-titlebar .icon::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    background: linear-gradient(135deg, #ffcb05, #f57c00);
+    border-radius: 50%;
+  }
+  .pb-titlebar .title { flex: 1; }
+  .pb-titlebar .btns { display: flex; gap: 2px; }
+  .pb-titlebar .btn {
+    width: 22px; height: 18px;
+    background: linear-gradient(180deg, #d4e8fb, #6699cc);
+    border: 1px solid #003366;
+    color: #000;
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .pb-titlebar .btn.close { background: linear-gradient(180deg, #ff9c8f, #c43c20); color: #fff; }
+
+  .pb-body { padding: 24px; }
+  .pb-title-text {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 22px;
+    color: #000080;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .label { font-size: 12px; }
+  .sle {
+    background: #fff;
+    border: 2px inset #d4d0c8;
+    padding: 4px 6px;
+    font-family: "Tahoma", sans-serif;
+    font-size: 12px;
+    height: 24px;
+    box-sizing: border-box;
+    outline: none;
+  }
+  .sle:focus { border-color: #003c74; }
+  .buttons {
+    margin-top: 22px;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+  }
+  .btn-pb {
+    background: linear-gradient(180deg, #fdfdfd 0%, #e3e3db 50%, #d6d3c4 51%, #c8c4b3 100%);
+    border: 1px solid #707070;
+    border-radius: 3px;
+    padding: 6px 22px;
+    font-family: "Tahoma", sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    min-width: 110px;
+    box-shadow: inset 0 1px 0 #fff;
+  }
+  .btn-pb.default { border: 2px solid #003c74; font-weight: bold; }
+  .btn-pb:hover { background: linear-gradient(180deg, #fff 0%, #ecebe0 50%, #d9d6c7 51%, #c8c4b3 100%); }
+  .btn-pb:disabled { color: #888; cursor: wait; }
+
+  .status {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 12px;
+    min-height: 18px;
+    font-weight: bold;
+  }
+  .status.err { color: #b00020; }
+  .status.ok  { color: #006400; }
+  .status.info { color: #003c74; font-weight: normal; }
+
+  .main-greeting {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #000080;
+    margin: 24px 0 14px;
+  }
+  .main-info {
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 22px;
+  }
+  .main-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .naplo-wrap {
+    margin: 0 24px 24px;
+    border: 2px inset #d4d0c8;
+    background: #fff;
+    max-height: 280px;
+    overflow: auto;
+    font-size: 11px;
+  }
+  .naplo-wrap table { border-collapse: collapse; width: 100%; }
+  .naplo-wrap th, .naplo-wrap td {
+    padding: 4px 8px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-family: "Consolas", "Courier New", monospace;
+  }
+  .naplo-wrap th {
+    background: #ece9d8;
+    border-bottom: 2px solid #999;
+    position: sticky;
+    top: 0;
+    font-family: "Tahoma", sans-serif;
+  }
+  .naplo-wrap td.ev-ok { color: #006400; font-weight: bold; }
+  .naplo-wrap td.ev-err { color: #b00020; }
+  .naplo-wrap td.ev-warn { color: #c0760a; }
+
+  .hint {
+    font-size: 11px;
+    color: #fff;
+    background: rgba(0,0,0,.4);
+    padding: 8px 12px;
+    border-radius: 4px;
+    max-width: 720px;
+    text-align: center;
+    line-height: 1.55;
+  }
+  .hint code {
+    background: rgba(255,255,255,.18);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .hint a { color: #ffe; }
+</style>
+</head>
+<body>
+
+  <h1>Beleptető rendszer — önálló kliens-oldali demó</h1>
+
+  <div class="hint">
+    Ez a fájl a PowerBuilder login alkalmazás logikáját tükrözi, de
+    teljesen a böngésződben fut: <b>SHA-256</b> hash a Web Crypto API-val,
+    "adatbázis" a <code>localStorage</code>-ban. Nem hív szervert, nem küld
+    adatot sehova. Tiszta laphoz: <a href="#" onclick="event.preventDefault();reset();">összes felhasználó és napló törlése</a>.
+  </div>
+
+  <!-- ========================= LOGIN ABLAK ========================= -->
+  <div class="pb-window" id="login-window">
+    <div class="pb-titlebar">
+      <span class="icon"></span>
+      <span class="title">Beleptető rendszer - Bejelentkezés</span>
+      <span class="btns">
+        <span class="btn">_</span>
+        <span class="btn close">×</span>
+      </span>
+    </div>
+    <div class="pb-body">
+      <div class="pb-title-text">Beleptető rendszer — kérjük, jelentkezzen be</div>
+      <form id="login-form" autocomplete="off">
+        <div class="form-row">
+          <label class="label" for="felh">Felhasználónév:</label>
+          <input class="sle" id="felh" type="text" maxlength="50" value="admin">
+        </div>
+        <div class="form-row">
+          <label class="label" for="jelszo">Jelszó:</label>
+          <input class="sle" id="jelszo" type="password" maxlength="50" value="Admin123!">
+        </div>
+        <div class="buttons">
+          <button class="btn-pb default" id="btn-belepes" type="submit">Beléptetés</button>
+          <button class="btn-pb" id="btn-megse" type="button">Mégse</button>
+        </div>
+        <div class="status info" id="status">Adja meg az adatait. (Teszt: admin / Admin123! · teszt / Teszt123!)</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================= FŐ ABLAK ========================= -->
+  <div class="pb-window large hidden" id="main-window">
+    <div class="pb-titlebar">
+      <span class="icon"></span>
+      <span class="title">Beleptető rendszer - Főablak</span>
+      <span class="btns">
+        <span class="btn">_</span>
+        <span class="btn">□</span>
+        <span class="btn close" onclick="kilepes()">×</span>
+      </span>
+    </div>
+    <div class="pb-body">
+      <div class="main-greeting" id="greeting">Üdvözöljük!</div>
+      <div class="main-info" id="info"></div>
+      <div class="main-actions">
+        <button class="btn-pb" onclick="naploRender()">Napló frissítése</button>
+        <button class="btn-pb" onclick="naploTorles()">Napló ürítése</button>
+        <button class="btn-pb" onclick="tiltasFeloldas()">Tiltások feloldása</button>
+        <button class="btn-pb default" onclick="kilepes()">Kilépés</button>
+      </div>
+    </div>
+    <div class="naplo-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 160px;">Időpont</th>
+            <th style="width: 100px;">Felhasználó</th>
+            <th style="width: 180px;">Esemény</th>
+            <th>Megjegyzés</th>
+          </tr>
+        </thead>
+        <tbody id="naplo-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+"use strict";
+
+// ------------------------------------------------------------------
+//  "Adatbázis" - localStorage
+// ------------------------------------------------------------------
+const MAX_PROBALKOZAS = 3;
+const KEY_USERS = "belepteto:users";
+const KEY_LOG   = "belepteto:naplo";
+const KEY_SESS  = "belepteto:session";
+
+const $ = (id) => document.getElementById(id);
+
+function load(key, def) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? def; }
+  catch { return def; }
+}
+function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+async function sha256Upper(s) {
+  const buf = new TextEncoder().encode(s);
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("").toUpperCase();
+}
+
+async function seedIfEmpty() {
+  let users = load(KEY_USERS, null);
+  if (users && users.length) return;
+  users = [
+    { id: 1, nev: "admin", teljes_nev: "Rendszergazda", email: "admin@example.com",
+      szerepkor: "ADMIN", jelszo_hash: await sha256Upper("Admin123!"),
+      aktiv: 1, tiltott: 0, sikertelen: 0, utolso: null, tiltas_ido: null },
+    { id: 2, nev: "teszt", teljes_nev: "Teszt Elemér", email: "teszt@example.com",
+      szerepkor: "USER",  jelszo_hash: await sha256Upper("Teszt123!"),
+      aktiv: 1, tiltott: 0, sikertelen: 0, utolso: null, tiltas_ido: null },
+  ];
+  save(KEY_USERS, users);
+  save(KEY_LOG, []);
+}
+
+function nowIso() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate())
+       + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+}
+
+function naplozas(felh, esemeny, megjegyzes) {
+  const naplo = load(KEY_LOG, []);
+  naplo.unshift({
+    ido: nowIso(),
+    felhasznalo_nev: felh,
+    esemeny,
+    megjegyzes,
+    gep_nev: navigator.userAgent.slice(0, 60),
+  });
+  // 200 sornál többet ne tartsunk
+  save(KEY_LOG, naplo.slice(0, 200));
+}
+
+// ------------------------------------------------------------------
+//  Hitelesítés - a wf_hitelesites PowerBuilder függvény megfelelője
+// ------------------------------------------------------------------
+async function hitelesites(felh, jelszo) {
+  const users = load(KEY_USERS, []);
+  const idx = users.findIndex(u => u.nev === felh);
+  if (idx < 0) {
+    naplozas(felh, "BELEPES_HIBAS_FELHASZNALO", "Ismeretlen felhasználónév");
+    return { ok: false, kod: 0, uzenet: "Hibás felhasználónév vagy jelszó!" };
+  }
+  const u = users[idx];
+
+  if (u.tiltott || !u.aktiv) {
+    naplozas(felh, "BELEPES_TILTOTT", "Tiltott fiók próbálkozott bejelentkezni");
+    return { ok: false, kod: -2,
+      uzenet: "A felhasználói fiók le van tiltva! Kérjük, vegye fel a kapcsolatot a rendszergazdával." };
+  }
+
+  const hash = await sha256Upper(jelszo);
+  if (hash !== u.jelszo_hash) {
+    u.sikertelen += 1;
+    const tiltani = u.sikertelen >= MAX_PROBALKOZAS;
+    if (tiltani) {
+      u.tiltott = 1;
+      u.tiltas_ido = nowIso();
+    }
+    users[idx] = u;
+    save(KEY_USERS, users);
+
+    naplozas(felh, "BELEPES_HIBAS_JELSZO", "Hibás jelszó próbálkozás #" + u.sikertelen);
+    if (tiltani) {
+      naplozas(felh, "FIOK_TILTVA",
+        "Automatikus tiltás " + MAX_PROBALKOZAS + " sikertelen próbálkozás után");
+      return { ok: false, kod: -2,
+        uzenet: "Túl sok sikertelen bejelentkezési próbálkozás! A felhasználói fiók letiltásra került." };
+    }
+    return { ok: false, kod: 0, uzenet: "Hibás felhasználónév vagy jelszó!",
+             hatra: MAX_PROBALKOZAS - u.sikertelen };
+  }
+
+  // Sikeres
+  u.sikertelen = 0;
+  u.utolso = nowIso();
+  users[idx] = u;
+  save(KEY_USERS, users);
+  naplozas(felh, "BELEPES_OK", "Sikeres bejelentkezés");
+  return { ok: true, kod: 1, felhasznalo: u.nev, teljes_nev: u.teljes_nev,
+           szerepkor: u.szerepkor, belepes_idopont: u.utolso };
+}
+
+// ------------------------------------------------------------------
+//  UI
+// ------------------------------------------------------------------
+function setStatus(msg, kind = "info") {
+  const s = $("status");
+  s.textContent = msg;
+  s.className = "status " + kind;
+}
+
+async function bejelentkezes(ev) {
+  ev.preventDefault();
+  const felh = $("felh").value.trim();
+  const jelszo = $("jelszo").value;
+  if (!felh)   { setStatus("Kérjük, adja meg a felhasználónevet!", "err"); $("felh").focus(); return; }
+  if (!jelszo) { setStatus("Kérjük, adja meg a jelszót!", "err"); $("jelszo").focus(); return; }
+
+  $("btn-belepes").disabled = true;
+  setStatus("Hitelesítés folyamatban...", "info");
+
+  const e = await hitelesites(felh, jelszo);
+  $("btn-belepes").disabled = false;
+
+  if (e.ok) {
+    save(KEY_SESS, e);
+    setStatus("Sikeres bejelentkezés!", "ok");
+    setTimeout(() => mutatFoablak(e), 350);
+  } else {
+    let msg = e.uzenet;
+    if (typeof e.hatra === "number") msg += " (" + e.hatra + " próbálkozás maradt)";
+    setStatus(msg, "err");
+    $("jelszo").value = "";
+    $("jelszo").focus();
+  }
+}
+
+function mutatFoablak(e) {
+  $("login-window").classList.add("hidden");
+  $("main-window").classList.remove("hidden");
+  $("greeting").textContent = "Üdvözöljük, " + e.felhasznalo + "!";
+  $("info").innerHTML =
+    "Teljes név: <b>" + (e.teljes_nev || "-") + "</b><br>" +
+    "Szerepkör: <b>" + e.szerepkor + "</b><br>" +
+    "Belépés időpontja: " + e.belepes_idopont;
+  naploRender();
+}
+
+function naploRender() {
+  const tbody = $("naplo-body");
+  tbody.innerHTML = "";
+  for (const sor of load(KEY_LOG, [])) {
+    const tr = document.createElement("tr");
+    const cls =
+      sor.esemeny === "BELEPES_OK" ? "ev-ok" :
+      (sor.esemeny.startsWith("BELEPES_HIBAS") || sor.esemeny === "FIOK_TILTVA"
+       || sor.esemeny === "BELEPES_TILTOTT") ? "ev-err" : "ev-warn";
+    const td = (t) => { const x = document.createElement("td"); x.textContent = t ?? ""; return x; };
+    const evtd = td(sor.esemeny); evtd.className = cls;
+    tr.append(td(sor.ido), td(sor.felhasznalo_nev), evtd, td(sor.megjegyzes));
+    tbody.appendChild(tr);
+  }
+  if (!tbody.children.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#888;padding:18px;">Üres napló</td></tr>';
+  }
+}
+
+function naploTorles() {
+  if (!confirm("Biztosan üríted a teljes naplót?")) return;
+  save(KEY_LOG, []);
+  naplozas("system", "NAPLO_URITES", "Manuális ürítés a főablakból");
+  naploRender();
+}
+
+function tiltasFeloldas() {
+  const users = load(KEY_USERS, []);
+  let n = 0;
+  for (const u of users) {
+    if (u.tiltott || u.sikertelen) { n++; u.tiltott = 0; u.sikertelen = 0; u.tiltas_ido = null; }
+  }
+  save(KEY_USERS, users);
+  if (n) naplozas("system", "TILTAS_FELOLD", n + " fiók feloldva");
+  naploRender();
+  alert(n + " fiók került feloldásra.");
+}
+
+function kilepes() {
+  const sess = load(KEY_SESS, null);
+  if (sess) naplozas(sess.felhasznalo, "KILEPES", "Felhasználó kijelentkezett");
+  localStorage.removeItem(KEY_SESS);
+  $("main-window").classList.add("hidden");
+  $("login-window").classList.remove("hidden");
+  $("jelszo").value = "";
+  setStatus("Kijelentkezett. Új belépéshez adja meg az adatait.", "info");
+  $("felh").focus();
+}
+
+async function reset() {
+  if (!confirm("Minden teszt felhasználó és napló törlésre kerül. Folytatod?")) return;
+  localStorage.removeItem(KEY_USERS);
+  localStorage.removeItem(KEY_LOG);
+  localStorage.removeItem(KEY_SESS);
+  await seedIfEmpty();
+  $("main-window").classList.add("hidden");
+  $("login-window").classList.remove("hidden");
+  setStatus("Tiszta lap. Teszt fiókok újra létrehozva.", "info");
+}
+
+// ------- indítás -------
+(async function init() {
+  await seedIfEmpty();
+  $("login-form").addEventListener("submit", bejelentkezes);
+  $("btn-megse").addEventListener("click", () => {
+    $("felh").value = "";
+    $("jelszo").value = "";
+    setStatus("Mégse - mezők ürítve.", "info");
+    $("felh").focus();
+  });
+  document.querySelectorAll(".pb-titlebar .close").forEach(b => {
+    b.addEventListener("click", () => {
+      // csak demó: a login bezárása újratölt; a főablak bezárása = kilépés
+      if (b.closest("#main-window")) kilepes();
+    });
+  });
+  const sess = load(KEY_SESS, null);
+  if (sess) mutatFoablak(sess);
+})();
+</script>
+
+</body>
+</html>
