@@ -38,6 +38,22 @@ Egyszerű, mégis teljes értékű beléptető (login) alkalmazás PowerBuilder 
 | `admin` | `Admin123!` | ADMIN |
 | `teszt` | `Teszt123!` | USER |
 
+## Futtatható referencia-implementáció (Python)
+
+A PowerBuilder build nélkül is kipróbálható a logika a mellékelt Python szerverrel,
+ami a `w_login.srw` viselkedését 1:1-ben másolja (SHA-256 hash, 3-strike tiltás,
+audit napló). Csak Python 3 kell, semmi `pip install`.
+
+```bash
+python3 belepteto_server.py
+```
+
+Majd nyisd meg böngészőben: <http://localhost:8080>
+
+- A `belepteto.sqlite` automatikusan létrejön, a teszt fiókok beszúrásra kerülnek.
+- A főablakon élőben látszik az audit napló (`belepes_naplo`).
+- `POST /api/reset` feloldja az összes letiltott fiókot fejlesztés közben.
+
 ## Biztonsági megjegyzés
 
 Éles használat előtt mindenképp:

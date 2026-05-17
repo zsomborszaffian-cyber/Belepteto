@@ -2,12 +2,11 @@
 <html lang="hu">
 <head>
 <meta charset="utf-8">
-<title>Beleptető rendszer - PowerBuilder 12.5 vizuális mockup</title>
+<title>Beleptető rendszer</title>
 <style>
-  /* Windows 7 / PowerBuilder 12.5 Classic stílusú megjelenés */
   body {
     margin: 0;
-    padding: 40px;
+    padding: 40px 20px 80px;
     background: #4a90c2;
     font-family: "Tahoma", "Segoe UI", sans-serif;
     color: #000;
@@ -15,23 +14,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 32px;
+    gap: 24px;
   }
   h1 {
     color: #fff;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: normal;
     text-shadow: 0 1px 2px rgba(0,0,0,.4);
     margin: 0;
   }
-  .desktop-label {
-    color: #fff;
-    font-size: 12px;
-    opacity: .85;
-    margin-top: -20px;
-  }
-
-  /* PB ablak külseje - Win7 Aero szerű */
   .pb-window {
     width: 520px;
     background: #ece9d8;
@@ -39,8 +30,10 @@
     border-radius: 8px 8px 0 0;
     box-shadow: 0 8px 24px rgba(0,0,0,.35);
     overflow: hidden;
+    transition: opacity .25s;
   }
   .pb-window.large { width: 680px; }
+  .pb-window.hidden { display: none; }
 
   .pb-titlebar {
     background: linear-gradient(180deg, #0058a8 0%, #0054a5 50%, #003d7c 51%, #003366 100%);
@@ -58,7 +51,6 @@
     background: #fff;
     border: 1px solid #003366;
     margin-right: 6px;
-    display: inline-block;
     position: relative;
   }
   .pb-titlebar .icon::after {
@@ -69,9 +61,7 @@
     border-radius: 50%;
   }
   .pb-titlebar .title { flex: 1; }
-  .pb-titlebar .btns {
-    display: flex; gap: 2px;
-  }
+  .pb-titlebar .btns { display: flex; gap: 2px; }
   .pb-titlebar .btn {
     width: 22px; height: 18px;
     background: linear-gradient(180deg, #d4e8fb, #6699cc);
@@ -80,16 +70,11 @@
     font-size: 11px;
     line-height: 16px;
     text-align: center;
-    font-weight: normal;
+    cursor: pointer;
   }
   .pb-titlebar .btn.close { background: linear-gradient(180deg, #ff9c8f, #c43c20); color: #fff; }
 
-  .pb-body {
-    background: #ece9d8;
-    padding: 24px;
-    position: relative;
-  }
-
+  .pb-body { background: #ece9d8; padding: 24px; }
   .pb-title-text {
     text-align: center;
     font-size: 14px;
@@ -97,7 +82,6 @@
     margin-bottom: 22px;
     color: #000080;
   }
-
   .form-row {
     display: grid;
     grid-template-columns: 130px 1fr;
@@ -105,22 +89,19 @@
     gap: 12px;
     margin-bottom: 12px;
   }
-  .label {
-    font-size: 12px;
-    text-align: left;
-  }
+  .label { font-size: 12px; }
   .sle {
     background: #fff;
     border: 2px inset #d4d0c8;
     padding: 4px 6px;
     font-family: "Tahoma", sans-serif;
     font-size: 12px;
-    height: 22px;
+    height: 24px;
     box-sizing: border-box;
+    outline: none;
   }
-  .sle.has-value::after {
-    content: attr(data-value);
-  }
+  .sle:focus { border-color: #003c74; }
+  .sle:disabled { background: #e0ddd0; color: #888; }
 
   .buttons {
     margin-top: 22px;
@@ -139,93 +120,88 @@
     min-width: 110px;
     box-shadow: inset 0 1px 0 #fff;
   }
-  .btn-pb.default {
-    border: 2px solid #003c74;
-    font-weight: bold;
-  }
-  .btn-pb:hover {
-    background: linear-gradient(180deg, #fff 0%, #ecebe0 50%, #d9d6c7 51%, #c8c4b3 100%);
-  }
+  .btn-pb.default { border: 2px solid #003c74; font-weight: bold; }
+  .btn-pb:hover { background: linear-gradient(180deg, #fff 0%, #ecebe0 50%, #d9d6c7 51%, #c8c4b3 100%); }
+  .btn-pb:disabled { color: #888; cursor: wait; }
 
   .status {
     margin-top: 18px;
     text-align: center;
-    font-size: 11px;
-    color: #b00020;
-    min-height: 14px;
+    font-size: 12px;
+    min-height: 18px;
+    font-weight: bold;
   }
+  .status.err { color: #b00020; }
+  .status.ok { color: #006400; }
+  .status.info { color: #003c74; font-weight: normal; }
 
-  /* Második ablak - főablak */
   .main-greeting {
     text-align: center;
     font-size: 22px;
     font-weight: bold;
     color: #000080;
-    margin: 40px 0 24px;
+    margin: 30px 0 18px;
   }
   .main-info {
     text-align: center;
     font-size: 13px;
     line-height: 1.7;
     color: #333;
-    margin-bottom: 60px;
+    margin-bottom: 30px;
   }
-  .main-btn-wrap {
+  .main-actions {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 24px;
   }
 
-  /* Tooltip / annotáció */
-  .note {
+  .naplo-wrap {
+    margin: 0 24px 24px;
+    border: 2px inset #d4d0c8;
+    background: #fff;
+    max-height: 260px;
+    overflow: auto;
+    font-size: 11px;
+  }
+  .naplo-wrap table { border-collapse: collapse; width: 100%; }
+  .naplo-wrap th, .naplo-wrap td {
+    padding: 4px 8px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-family: "Consolas", "Courier New", monospace;
+  }
+  .naplo-wrap th {
+    background: #ece9d8;
+    border-bottom: 2px solid #999;
+    position: sticky;
+    top: 0;
+    font-family: "Tahoma", sans-serif;
+  }
+  .naplo-wrap td.ev-ok   { color: #006400; font-weight: bold; }
+  .naplo-wrap td.ev-err  { color: #b00020; }
+  .naplo-wrap td.ev-warn { color: #c0760a; }
+
+  .hint {
     font-size: 11px;
     color: #fff;
     background: rgba(0,0,0,.4);
-    padding: 6px 10px;
+    padding: 8px 12px;
     border-radius: 4px;
     max-width: 680px;
     text-align: center;
+    line-height: 1.5;
   }
-
-  /* Tálca alja - hangulat */
-  .taskbar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: 36px;
-    background: linear-gradient(180deg, #245edb 0%, #1941a5 50%, #1941a5 100%);
-    border-top: 1px solid #0a246a;
-    display: flex;
-    align-items: center;
-    padding: 0 8px;
-    color: #fff;
-    font-size: 11px;
-    box-shadow: 0 -2px 4px rgba(0,0,0,.3);
+  .hint code {
+    background: rgba(255,255,255,.15);
+    padding: 1px 5px;
+    border-radius: 3px;
   }
-  .start-btn {
-    background: linear-gradient(180deg, #3c8c3c, #2a6b2a);
-    color: #fff;
-    padding: 4px 16px 4px 28px;
-    border-radius: 0 18px 18px 0;
-    font-weight: bold;
-    font-style: italic;
-    position: relative;
-  }
-  .start-btn::before {
-    content: "";
-    position: absolute;
-    left: 8px; top: 50%;
-    transform: translateY(-50%);
-    width: 14px; height: 14px;
-    background: radial-gradient(circle, #ff5 0%, #f80 70%);
-    border-radius: 50%;
-  }
-  .clock { margin-left: auto; padding: 0 12px; }
 </style>
 </head>
 <body>
 
-  <h1>Beleptető rendszer — PowerBuilder 12.5 vizuális mockup</h1>
-  <div class="desktop-label">Így fog kinézni Windows alatt, az IDE-ből / EXE-ből futtatva</div>
+  <h1>Beleptető rendszer — élő, működő példány</h1>
 
   <!-- ========================= LOGIN ABLAK ========================= -->
   <div class="pb-window" id="login-window">
@@ -234,77 +210,175 @@
       <span class="title">Beleptető rendszer - Bejelentkezés</span>
       <span class="btns">
         <span class="btn">_</span>
-        <span class="btn close">×</span>
+        <span class="btn close" onclick="alert('Mégse')">×</span>
       </span>
     </div>
     <div class="pb-body">
       <div class="pb-title-text">Beleptető rendszer — kérjük, jelentkezzen be</div>
 
-      <div class="form-row">
-        <div class="label">Felhasználónév:</div>
-        <input class="sle" type="text" value="admin">
-      </div>
-      <div class="form-row">
-        <div class="label">Jelszó:</div>
-        <input class="sle" type="password" value="Admin123!">
-      </div>
+      <form id="login-form" autocomplete="off">
+        <div class="form-row">
+          <label class="label" for="felh">Felhasználónév:</label>
+          <input class="sle" id="felh" name="felh" type="text" maxlength="50" value="admin">
+        </div>
+        <div class="form-row">
+          <label class="label" for="jelszo">Jelszó:</label>
+          <input class="sle" id="jelszo" name="jelszo" type="password" maxlength="50" value="Admin123!">
+        </div>
 
-      <div class="buttons">
-        <button class="btn-pb default" onclick="bejelentkezes()">Beléptetés</button>
-        <button class="btn-pb">Mégse</button>
-      </div>
+        <div class="buttons">
+          <button class="btn-pb default" id="btn-belepes" type="submit">Beléptetés</button>
+          <button class="btn-pb" id="btn-megse" type="button">Mégse</button>
+        </div>
 
-      <div class="status" id="status"></div>
+        <div class="status info" id="status">Csatlakozás kész. Adja meg az adatait.</div>
+      </form>
     </div>
   </div>
 
-  <div class="note">↑ Bejelentkezési ablak (<code>w_login.srw</code>). A „Beléptetés" gombra kattintva sikeres login után átvált a főablakra.</div>
+  <div class="hint">
+    Teszt fiókok: <code>admin / Admin123!</code> és <code>teszt / Teszt123!</code> —
+    3 hibás jelszó után a fiók letiltódik (a <code>belepes_naplo</code>-ban látható).
+  </div>
 
   <!-- ========================= FŐ ABLAK ========================= -->
-  <div class="pb-window large" id="main-window">
+  <div class="pb-window large hidden" id="main-window">
     <div class="pb-titlebar">
       <span class="icon"></span>
       <span class="title">Beleptető rendszer - Főablak</span>
       <span class="btns">
         <span class="btn">_</span>
         <span class="btn">□</span>
-        <span class="btn close">×</span>
+        <span class="btn close" onclick="kilepes()">×</span>
       </span>
     </div>
-    <div class="pb-body" style="min-height: 360px;">
-      <div class="main-greeting">Üdvözöljük, admin!</div>
-      <div class="main-info">
-        Szerepkör: ADMIN<br>
-        Belépés időpontja: 2026.05.17 14:32:08
-      </div>
-      <div class="main-btn-wrap">
-        <button class="btn-pb">Kilépés</button>
+    <div class="pb-body">
+      <div class="main-greeting" id="greeting">Üdvözöljük!</div>
+      <div class="main-info" id="info"></div>
+      <div class="main-actions">
+        <button class="btn-pb" onclick="naploFrissites()">Napló frissítése</button>
+        <button class="btn-pb default" onclick="kilepes()">Kilépés</button>
       </div>
     </div>
-  </div>
-
-  <div class="note">↑ Sikeres bejelentkezés után megjelenő főablak (<code>w_main.srw</code>). Az adatok a <code>gs_felhasznalo_nev</code>, <code>gs_szerepkor</code>, <code>gdt_belepes_idopont</code> globális változókból jönnek.</div>
-
-  <div style="height:60px;"></div>
-
-  <div class="taskbar">
-    <span class="start-btn">start</span>
-    <span class="clock">14:32 | 2026.05.17.</span>
+    <div class="naplo-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Időpont</th>
+            <th>Felhasználó</th>
+            <th>Esemény</th>
+            <th>Megjegyzés</th>
+          </tr>
+        </thead>
+        <tbody id="naplo-body"></tbody>
+      </table>
+    </div>
   </div>
 
 <script>
-  // Apró interaktivitás: ha a Beléptetés gombra kattintasz, "betöltjük" az állapotot
-  function bejelentkezes() {
-    const status = document.getElementById('status');
-    status.style.color = '#006400';
-    status.textContent = 'Csatlakozás MS SQL Serverhez... Hitelesítés sikeres.';
-    setTimeout(() => {
-      document.getElementById('login-window').style.opacity = '.4';
-      document.getElementById('main-window').style.outline = '3px solid #ffcb05';
-      document.getElementById('main-window').scrollIntoView({behavior:'smooth', block:'center'});
-      setTimeout(()=>{ document.getElementById('main-window').style.outline = ''; }, 1500);
-    }, 400);
+  const $ = (id) => document.getElementById(id);
+
+  async function api(path, opts = {}) {
+    const r = await fetch(path, {
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      ...opts,
+    });
+    return r.json();
   }
+
+  function setStatus(msg, kind = "info") {
+    const s = $("status");
+    s.textContent = msg;
+    s.className = "status " + kind;
+  }
+
+  async function bejelentkezes(ev) {
+    ev.preventDefault();
+    const felh = $("felh").value.trim();
+    const jelszo = $("jelszo").value;
+    if (!felh)   { setStatus("Kérjük, adja meg a felhasználónevet!", "err"); $("felh").focus(); return; }
+    if (!jelszo) { setStatus("Kérjük, adja meg a jelszót!", "err"); $("jelszo").focus(); return; }
+
+    $("btn-belepes").disabled = true;
+    setStatus("Csatlakozás MS SQL Serverhez...", "info");
+
+    try {
+      const e = await api("/api/login", {
+        method: "POST",
+        body: JSON.stringify({ felhasznalo: felh, jelszo: jelszo }),
+      });
+
+      if (e.ok) {
+        setStatus("Sikeres bejelentkezés!", "ok");
+        setTimeout(() => mutatFoablak(e), 400);
+      } else {
+        let msg = e.uzenet || "Hiba történt.";
+        if (typeof e.hatra === "number") msg += " (" + e.hatra + " próbálkozás maradt)";
+        setStatus(msg, "err");
+        $("jelszo").value = "";
+        $("jelszo").focus();
+      }
+    } catch (err) {
+      setStatus("Hálózati hiba: " + err.message, "err");
+    } finally {
+      $("btn-belepes").disabled = false;
+    }
+  }
+
+  function mutatFoablak(e) {
+    $("login-window").classList.add("hidden");
+    $("main-window").classList.remove("hidden");
+    $("greeting").textContent = "Üdvözöljük, " + e.felhasznalo + "!";
+    const ido = (e.belepes_idopont || "").replace("T", " ");
+    $("info").innerHTML =
+      "Szerepkör: <b>" + e.szerepkor + "</b><br>" +
+      "Belépés időpontja: " + ido;
+    naploFrissites();
+  }
+
+  async function naploFrissites() {
+    const e = await api("/api/naplo");
+    const tbody = $("naplo-body");
+    tbody.innerHTML = "";
+    if (!e.naplo) return;
+    for (const sor of e.naplo) {
+      const tr = document.createElement("tr");
+      const cls =
+        sor.esemeny === "BELEPES_OK" ? "ev-ok" :
+        sor.esemeny.startsWith("BELEPES_HIBAS") || sor.esemeny === "FIOK_TILTVA" ? "ev-err" :
+        "ev-warn";
+      tr.innerHTML =
+        "<td>" + (sor.esemeny_idopont || "").replace("T", " ") + "</td>" +
+        "<td>" + sor.felhasznalo_nev + "</td>" +
+        '<td class="' + cls + '">' + sor.esemeny + "</td>" +
+        "<td>" + (sor.megjegyzes || "") + "</td>";
+      tbody.appendChild(tr);
+    }
+  }
+
+  async function kilepes() {
+    await api("/api/logout", { method: "POST" });
+    $("main-window").classList.add("hidden");
+    $("login-window").classList.remove("hidden");
+    $("jelszo").value = "";
+    setStatus("Kijelentkezett. Új belépéshez adja meg az adatait.", "info");
+    $("felh").focus();
+  }
+
+  // Indítás: ellenőrizzük, van-e már élő session
+  (async () => {
+    const me = await api("/api/me");
+    if (me.bejelentkezve) mutatFoablak(me);
+  })();
+
+  $("login-form").addEventListener("submit", bejelentkezes);
+  $("btn-megse").addEventListener("click", () => {
+    $("felh").value = "";
+    $("jelszo").value = "";
+    setStatus("Mégse - mezők ürítve.", "info");
+    $("felh").focus();
+  });
 </script>
 
 </body>
