@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<title>Beleptető rendszer - PowerBuilder 12.5 vizuális mockup</title>
+<style>
+  /* Windows 7 / PowerBuilder 12.5 Classic stílusú megjelenés */
+  body {
+    margin: 0;
+    padding: 40px;
+    background: #4a90c2;
+    font-family: "Tahoma", "Segoe UI", sans-serif;
+    color: #000;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+  }
+  h1 {
+    color: #fff;
+    font-size: 18px;
+    font-weight: normal;
+    text-shadow: 0 1px 2px rgba(0,0,0,.4);
+    margin: 0;
+  }
+  .desktop-label {
+    color: #fff;
+    font-size: 12px;
+    opacity: .85;
+    margin-top: -20px;
+  }
+
+  /* PB ablak külseje - Win7 Aero szerű */
+  .pb-window {
+    width: 520px;
+    background: #ece9d8;
+    border: 1px solid #003c74;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    overflow: hidden;
+  }
+  .pb-window.large { width: 680px; }
+
+  .pb-titlebar {
+    background: linear-gradient(180deg, #0058a8 0%, #0054a5 50%, #003d7c 51%, #003366 100%);
+    color: #fff;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 0 1px 1px rgba(0,0,0,.5);
+    user-select: none;
+  }
+  .pb-titlebar .icon {
+    width: 16px; height: 16px;
+    background: #fff;
+    border: 1px solid #003366;
+    margin-right: 6px;
+    display: inline-block;
+    position: relative;
+  }
+  .pb-titlebar .icon::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    background: linear-gradient(135deg, #ffcb05, #f57c00);
+    border-radius: 50%;
+  }
+  .pb-titlebar .title { flex: 1; }
+  .pb-titlebar .btns {
+    display: flex; gap: 2px;
+  }
+  .pb-titlebar .btn {
+    width: 22px; height: 18px;
+    background: linear-gradient(180deg, #d4e8fb, #6699cc);
+    border: 1px solid #003366;
+    color: #000;
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+    font-weight: normal;
+  }
+  .pb-titlebar .btn.close { background: linear-gradient(180deg, #ff9c8f, #c43c20); color: #fff; }
+
+  .pb-body {
+    background: #ece9d8;
+    padding: 24px;
+    position: relative;
+  }
+
+  .pb-title-text {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 22px;
+    color: #000080;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .label {
+    font-size: 12px;
+    text-align: left;
+  }
+  .sle {
+    background: #fff;
+    border: 2px inset #d4d0c8;
+    padding: 4px 6px;
+    font-family: "Tahoma", sans-serif;
+    font-size: 12px;
+    height: 22px;
+    box-sizing: border-box;
+  }
+  .sle.has-value::after {
+    content: attr(data-value);
+  }
+
+  .buttons {
+    margin-top: 22px;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+  }
+  .btn-pb {
+    background: linear-gradient(180deg, #fdfdfd 0%, #e3e3db 50%, #d6d3c4 51%, #c8c4b3 100%);
+    border: 1px solid #707070;
+    border-radius: 3px;
+    padding: 6px 22px;
+    font-family: "Tahoma", sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    min-width: 110px;
+    box-shadow: inset 0 1px 0 #fff;
+  }
+  .btn-pb.default {
+    border: 2px solid #003c74;
+    font-weight: bold;
+  }
+  .btn-pb:hover {
+    background: linear-gradient(180deg, #fff 0%, #ecebe0 50%, #d9d6c7 51%, #c8c4b3 100%);
+  }
+
+  .status {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 11px;
+    color: #b00020;
+    min-height: 14px;
+  }
+
+  /* Második ablak - főablak */
+  .main-greeting {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #000080;
+    margin: 40px 0 24px;
+  }
+  .main-info {
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 60px;
+  }
+  .main-btn-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  /* Tooltip / annotáció */
+  .note {
+    font-size: 11px;
+    color: #fff;
+    background: rgba(0,0,0,.4);
+    padding: 6px 10px;
+    border-radius: 4px;
+    max-width: 680px;
+    text-align: center;
+  }
+
+  /* Tálca alja - hangulat */
+  .taskbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 36px;
+    background: linear-gradient(180deg, #245edb 0%, #1941a5 50%, #1941a5 100%);
+    border-top: 1px solid #0a246a;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    color: #fff;
+    font-size: 11px;
+    box-shadow: 0 -2px 4px rgba(0,0,0,.3);
+  }
+  .start-btn {
+    background: linear-gradient(180deg, #3c8c3c, #2a6b2a);
+    color: #fff;
+    padding: 4px 16px 4px 28px;
+    border-radius: 0 18px 18px 0;
+    font-weight: bold;
+    font-style: italic;
+    position: relative;
+  }
+  .start-btn::before {
+    content: "";
+    position: absolute;
+    left: 8px; top: 50%;
+    transform: translateY(-50%);
+    width: 14px; height: 14px;
+    background: radial-gradient(circle, #ff5 0%, #f80 70%);
+    border-radius: 50%;
+  }
+  .clock { margin-left: auto; padding: 0 12px; }
+</style>
+</head>
+<body>
+
+  <h1>Beleptető rendszer — PowerBuilder 12.5 vizuális mockup</h1>
+  <div class="desktop-label">Így fog kinézni Windows alatt, az IDE-ből / EXE-ből futtatva</div>
+
+  <!-- ========================= LOGIN ABLAK ========================= -->
+  <div class="pb-window" id="login-window">
+    <div class="pb-titlebar">
+      <span class="icon"></span>
+      <span class="title">Beleptető rendszer - Bejelentkezés</span>
+      <span class="btns">
+        <span class="btn">_</span>
+        <span class="btn close">×</span>
+      </span>
+    </div>
+    <div class="pb-body">
+      <div class="pb-title-text">Beleptető rendszer — kérjük, jelentkezzen be</div>
+
+      <div class="form-row">
+        <div class="label">Felhasználónév:</div>
+        <input class="sle" type="text" value="admin">
+      </div>
+      <div class="form-row">
+        <div class="label">Jelszó:</div>
+        <input class="sle" type="password" value="Admin123!">
+      </div>
+
+      <div class="buttons">
+        <button class="btn-pb default" onclick="bejelentkezes()">Beléptetés</button>
+        <button class="btn-pb">Mégse</button>
+      </div>
+
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+  <div class="note">↑ Bejelentkezési ablak (<code>w_login.srw</code>). A „Beléptetés" gombra kattintva sikeres login után átvált a főablakra.</div>
+
+  <!-- ========================= FŐ ABLAK ========================= -->
+  <div class="pb-window large" id="main-window">
+    <div class="pb-titlebar">
+      <span class="icon"></span>
+      <span class="title">Beleptető rendszer - Főablak</span>
+      <span class="btns">
+        <span class="btn">_</span>
+        <span class="btn">□</span>
+        <span class="btn close">×</span>
+      </span>
+    </div>
+    <div class="pb-body" style="min-height: 360px;">
+      <div class="main-greeting">Üdvözöljük, admin!</div>
+      <div class="main-info">
+        Szerepkör: ADMIN<br>
+        Belépés időpontja: 2026.05.17 14:32:08
+      </div>
+      <div class="main-btn-wrap">
+        <button class="btn-pb">Kilépés</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">↑ Sikeres bejelentkezés után megjelenő főablak (<code>w_main.srw</code>). Az adatok a <code>gs_felhasznalo_nev</code>, <code>gs_szerepkor</code>, <code>gdt_belepes_idopont</code> globális változókból jönnek.</div>
+
+  <div style="height:60px;"></div>
+
+  <div class="taskbar">
+    <span class="start-btn">start</span>
+    <span class="clock">14:32 | 2026.05.17.</span>
+  </div>
+
+<script>
+  // Apró interaktivitás: ha a Beléptetés gombra kattintasz, "betöltjük" az állapotot
+  function bejelentkezes() {
+    const status = document.getElementById('status');
+    status.style.color = '#006400';
+    status.textContent = 'Csatlakozás MS SQL Serverhez... Hitelesítés sikeres.';
+    setTimeout(() => {
+      document.getElementById('login-window').style.opacity = '.4';
+      document.getElementById('main-window').style.outline = '3px solid #ffcb05';
+      document.getElementById('main-window').scrollIntoView({behavior:'smooth', block:'center'});
+      setTimeout(()=>{ document.getElementById('main-window').style.outline = ''; }, 1500);
+    }, 400);
+  }
+</script>
+
+</body>
+</html>
